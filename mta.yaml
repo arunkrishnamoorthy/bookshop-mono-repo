@@ -1,0 +1,125 @@
+_schema-version: "3.1"
+
+ID: bookshop-ts
+description: A simple CAP project.
+version: 1.0.0
+
+modules:
+  - name: bookshop-ts-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: bookshop-ts-auth
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+
+  - name: bookshop-ts
+    type: approuter.nodejs
+    path: approuter/
+    requires:
+      - name: bookshop-ts-repo-runtime
+      - name: bookshop-ts-destination-service
+        group: destinations
+        properties:
+          forwardAuthToken: false
+          name: ui5
+          url: https://ui5.sap.com
+      - name: bookshop-ts-auth
+      - name: srv-api
+        group: destinations
+        properties:
+          forwardAuthToken: true
+          name: srv-api
+          url: ~{srv-url}
+    parameters:
+      disk-quota: 256M
+      keep-existing-routes: true
+      memory: 256M
+
+  - name: bookshop-ts-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: bookshop-ts-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - displaybooks.zip
+          name: displaybooks
+          target-path: resources/
+
+  - name: displaybooks
+    type: html5
+    path: app/display-books
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+
+resources:
+  - name: bookshop-ts-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        tenant-mode: dedicated
+        xsappname: bookshop-ts
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+
+  - name: bookshop-ts-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-name: bookshop-ts-html5-srv
+      service-plan: app-host
+
+  - name: bookshop-ts-repo-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-name: bookshop-ts-html5-rt
+      service-plan: app-runtime
+
+  - name: bookshop-ts-destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+            existing_destinations_policy: update
+        version: 1.0.0
+      service: destination
+      service-name: bookshop-ts-destination-service
+      service-plan: lite
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install --production
+        - npm run build:cf
+        - cp -r db/data gen/srv/srv/data

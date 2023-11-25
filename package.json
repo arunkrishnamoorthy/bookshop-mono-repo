@@ -1,0 +1,28 @@
+{
+  "name": "bookshop-mono",
+  "version": "1.0.0",
+  "description": "Bookshop Mono repository",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run start -w=approuter",
+    "dev": "npm-run-all --parallel start:cap start:approuter",
+    "start:approuter": "npm run start -w=approuter",
+    "start:cap": "cd packages/server && npm start"
+  },
+  "keywords": [
+    "timesheet",
+    "efforts",
+    "booking"
+  ],
+  "author": "Arun Krishnamoorthy",
+  "license": "ISC",
+  "workspaces": [
+    "packages/*"
+  ],
+  "sapux": [
+    "packages/app"
+  ],
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

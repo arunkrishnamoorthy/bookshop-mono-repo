@@ -1,0 +1,78 @@
+{
+  "name": "bookshop-ts",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@cap-js/sqlite": "^1.3.1",
+    "@sap/cds": "^7",
+    "@sap/xssec": "^3",
+    "express": "^4",
+    "passport": "^0",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@cap-js/cds-typer": "^0",
+    "@sap/cds-dk": "^7",
+    "@sap/ux-specification": "^1.120.0",
+    "cds-plugin-ui5": "^0.6.13",
+    "rimraf": "^3.0.2"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "approuter": "cds bind --exec -- npm start --prefix approuter",
+    "hybrid": "cds-ts watch --profile hybrid",
+    "build:cf": "npm run build:cds && npm run cleanup:ts && npm run build:ts",
+    "build:ts": "tsc",
+    "build:cds": "cds build --production",
+    "cleanup:ts": "npx rimraf gen/srv/srv/**/*.ts",
+    "watch-appfe1": "cds watch --open com.demo.fe.appfe1/index.html?sap-ui-xx-viewCache=false --livereload false"
+  },
+  "cds": {
+    "features": {
+      "in_memory_db": true
+    },
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "database": ":memory:"
+        }
+      },
+      "[development]": {
+        "auth": {
+          "kind": "basic",
+          "users": {
+            "user": {
+              "password": "123",
+              "roles": [
+                "user"
+              ]
+            },
+            "admin": {
+              "password": "123",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        }
+      },
+      "[hybrid]": {
+        "auth": "xsuaa"
+      },
+      "[production]": {
+        "auth": "xsuaa"
+      }
+    }
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/display-books",
+    "app/appfe1"
+  ]
+}

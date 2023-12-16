@@ -7,7 +7,8 @@
     "start": "npm run start -w=approuter",
     "dev": "npm-run-all --parallel start:cap start:approuter",
     "start:approuter": "npm run start -w=approuter",
-    "start:cap": "cd packages/server && npm start"
+    "start:cap": "cd packages/server && npm start",
+    "build:cf": "npm run build:cds && npm run cleanup:ts && npm run build:ts"
   },
   "keywords": [
     "timesheet",
